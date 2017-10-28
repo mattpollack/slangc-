@@ -15,9 +15,13 @@ namespace slang {
 		IDENTIFIER,
 		SIGNATURE,
 		PATTERN,
+		MATCH,
+		EXPRESSION,
 	};
 
-	// Base
+        /**
+	 * Base
+	 */
 	class Base {
 	protected:
 	    Type type;
@@ -27,7 +31,9 @@ namespace slang {
 	    virtual std::string toString() { return "Base"; }
 	};
 
-	// Error
+	/**
+	 * Error
+	 */
 	class Error : public Base {
 	private:
 	    std::string msg;
@@ -77,24 +83,50 @@ namespace slang {
 		return res;
 	    }
 	};
+
+	/**
+	 * Expression
+	 */
+	class Expression : public Base {
+	public:
+	    Expression()
+		: Base(Type::EXPRESSION)
+	    {}
+
+	    virtual std::string toString() override { return "TODO Body tostring"; }
+	};
+
+	/**
+	 * Match 
+	 */
+	class Match : public Base {
+	private:
+	    Expression expression;
+	public:
+	    Match(Expression expression)
+		: Base(Type::MATCH)
+		, expression(expression)
+	    {}
+
+	    virtual std::string toString() override { return "TODO Type tostring"; }
+	};
 	
 	/**
 	 * Pattern
 	 */
 	class Pattern : public Base {
+	private:
+	    std::vector<Match> matches;
 	public:
-	    Pattern()
+	    Pattern(std::vector<Match> matches)
 		: Base(Type::PATTERN)
 	    {}
 
 	    virtual std::string toString() override { return "TODO Pattern tostring"; }
 	};
-	
+
 	/**
 	 * Function
-	 * - ID
-	 * - Signature
-	 * - Pattern
 	 */
 	class Func : public Base {
 	private:

@@ -62,12 +62,31 @@ namespace slang {
 		AST::Signature(list));
 	}
 	else {
-	    return ERROR_NODE("TODO Signature");
+	    return ERROR_NODE("Ill formatted signature TODO ");
 	}
     }
 
+    base_t parseMatch(Lexer& lexer) {
+	return ERROR_NODE("TODO Match");
+    }
+
     base_t parsePattern(Lexer& lexer) {
-	return ERROR_NODE("TODO Pattern");
+	if (!lexer.peek().is(TokenType::TOKEN_BAR)) {
+	    return ERROR_NODE("Expected token bar");
+	}
+
+	std::vector<AST::Match> matches;
+
+	while (lexer.peek().is(TokenType::TOKEN_BAR)) {
+	    base_t match = parseMatch(lexer);
+
+	    if (!match->is(AST::Type::MATCH)) return match;
+	    
+	    matches.push_back(base_cast<AST::Match>(match));
+	}
+	
+	return std::make_shared<AST::Pattern>(
+	    AST::Pattern(matches));
     }
     
     base_t parseFunc(Lexer& lexer) {
