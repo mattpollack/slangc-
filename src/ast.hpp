@@ -13,10 +13,25 @@ namespace slang {
 	    ERROR,
 		FUNC,
 		IDENTIFIER,
+		LITERAL,
 		SIGNATURE,
 		PATTERN,
-		MATCH,
 		EXPRESSION,
+
+	    // NOTE: maybe create a seperate type class for match
+	    //       expressions.
+	    // More todo here, just using these for now
+		MATCH,
+		MATCH_EXPRESSION,
+
+	    // Expressions
+		MATCH_IDENTIFIER,   // foo
+		MATCH_LITERAL,      // 1 "foo"
+		MATCH_SKIP,         // _
+	        MATCH_ARRAY_EMPTY,  // []
+		MATCH_ARRAY_MIDDLE, // [l|r]
+		MATCH_ARRAY_HEAD,   // [h:t]
+		MATCH_ARRAY_EXACT,  // [1 2], like an array literal
 	};
 
         /**
@@ -62,6 +77,21 @@ namespace slang {
 	};
 
 	/**
+	 * Literal
+	 */
+	class Literal : public Base {
+	private:
+	    Token token;
+	public:
+	    Literal(Token token)
+		: Base(Type::LITERAL)
+		, token(token)
+	    {}
+
+	    virtual std::string toString() override { return token.toString(); }
+	};
+	
+	/**
 	 * Signature
 	 */
 	class Signature : public Base {
@@ -93,7 +123,23 @@ namespace slang {
 		: Base(Type::EXPRESSION)
 	    {}
 
-	    virtual std::string toString() override { return "TODO Body tostring"; }
+	    virtual std::string toString() override { return "TODO Expression tostring"; }
+	};
+	
+	/**
+	 * Match Expression
+	 * Currently ONLY implemented identifier
+	 */
+	class MatchExpression : public Base {
+	private:
+	    Identifier id;
+	public:
+	    MatchExpression(Identifier id)
+		: Base(Type::MATCH_EXPRESSION)
+		, id(id)
+	    {}
+
+	    virtual std::string toString() override { return "TODO Match Expression tostring"; }
 	};
 
 	/**
@@ -101,14 +147,17 @@ namespace slang {
 	 */
 	class Match : public Base {
 	private:
-	    Expression expression;
+	    std::vector<MatchExpression> mexprs;
+	    Expression body;
 	public:
-	    Match(Expression expression)
+	    Match(std::vector<MatchExpression> mexprs,
+		  Expression body)
 		: Base(Type::MATCH)
-		, expression(expression)
+		, mexprs(mexprs)
+		, body(body)
 	    {}
 
-	    virtual std::string toString() override { return "TODO Type tostring"; }
+	    virtual std::string toString() override { return "TODO Match tostring"; }
 	};
 	
 	/**

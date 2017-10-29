@@ -1,6 +1,8 @@
 #include "parser.hpp"
 #include "lexer.hpp"
 
+#include <iostream>
+
 #define ERROR_NODE(a) (std::make_shared<AST::Error>(AST::Error((a))))
 
 namespace slang {
@@ -66,24 +68,93 @@ namespace slang {
 	}
     }
 
+    base_t parseExpression(Lexer& lexer) {
+	return ERROR_NODE("TODO Expression");
+    }
+    
+    base_t parseMatchExpression(Lexer& lexer) {
+	/*
+          ### TODO
+	  * Literals
+	  - Match Number
+	  - Match Float
+	  - Match String
+
+	  * Special
+	  - skip
+	  - none
+	  
+	  * Array
+	    # head, tail
+	  - [ (parseMatchExpression)
+	    : (parseMatchExpression)
+	  - [ (parseMatchExpression)
+	    : (parseMatchExpression)
+	    : (parseMatchExpression) ]
+
+	    # middle split
+	  - [ (parseMatchExpression) 
+	    | (parseMatchExpression) ]
+	  - [ (parseMatchExpression)
+	    | (parseMatchExpression)
+	    | (parseMatchExpression) ]
+
+	  ### DONE
+	  * Identifier
+	  
+	 */
+	
+	// Identifier
+	base_t id = parseIdentifier(lexer);
+
+	if (id->is(AST::Type::ERROR)) return id;
+	if (id->is(AST::Type::IDENTIFIER)) {
+	    return std::make_shared<AST::MatchExpression>(
+		AST::MatchExpression(
+		    base_cast<AST::Identifier>(id)));
+	}
+	else {
+	    return ERROR_NODE("Unexpected parser end in match expression");
+	}
+    }
+
     base_t parseMatch(Lexer& lexer) {
-	return ERROR_NODE("TODO Match");
+	if (!lexer.peek().is(TokenType::TOKEN_BAR)) {
+	    return ERROR_NODE("Match must begin with a '|'");
+	}
+
+	lexer.next();
+
+	std::vector<AST::MatchExpression> mexprs;
+	
+	while (true) {
+	    /**/ if (lexer.peek().is(TokenType::TOKEN_EQUAL)) {
+		lexer.next();
+
+		// parse body expression
+
+	        return ERROR_NODE("Expected match expression body");
+	    }
+	    else {
+		base_t mexpr = parseMatchExpression(lexer);
+
+		if (!mexpr->is(AST::Type::MATCH_EXPRESSION)) return mexpr;
+
+		mexprs.push_back(base_cast<AST::MatchExpression>(mexpr));
+	    }
+	}
     }
 
     base_t parsePattern(Lexer& lexer) {
-	if (!lexer.peek().is(TokenType::TOKEN_BAR)) {
-	    return ERROR_NODE("Expected token bar");
-	}
+        std::vector<AST::Match> matches;
 
-	std::vector<AST::Match> matches;
-
-	while (lexer.peek().is(TokenType::TOKEN_BAR)) {
+	do {
 	    base_t match = parseMatch(lexer);
 
 	    if (!match->is(AST::Type::MATCH)) return match;
 	    
 	    matches.push_back(base_cast<AST::Match>(match));
-	}
+	} while (lexer.peek().is(TokenType::TOKEN_BAR));
 	
 	return std::make_shared<AST::Pattern>(
 	    AST::Pattern(matches));

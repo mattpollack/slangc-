@@ -10,13 +10,15 @@ int main(int argc, char ** argv) {
     std::cout << "slang 0.0.0\n\n";
     
     std::string raw =
-	"func add (int int)\n"
-	"| x y = x + y\n"
-	"\n"
-	"func fib (int)\n"
-	"| 0 = 1\n"
-	"| 1 = 1\n"
-	"| n = fib (n - 1) + fib (n - 2)\n";
+	"func test () | = add 2 8\n";
+	//"func add (int int)\n"
+	//"| x y = x + y\n"
+	//"\n" 
+	//"\n"
+	//"func fib (int)\n"
+	//"| 0 = 1\n"
+	//"| 1 = 1\n"
+	//"| n = fib (n - 1) + fib (n - 2)\n";
 
     std::cout << raw << std::endl;
     
