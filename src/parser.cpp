@@ -107,15 +107,14 @@ namespace slang {
 	// Identifier
 	base_t id = parseIdentifier(lexer);
 
-	if (id->is(AST::Type::ERROR)) return id;
-	if (id->is(AST::Type::IDENTIFIER)) {
+	if (id->is(AST::Type::ERROR))
+	    return id;
+	if (id->is(AST::Type::IDENTIFIER))
 	    return std::make_shared<AST::MatchExpression>(
 		AST::MatchExpression(
 		    base_cast<AST::Identifier>(id)));
-	}
-	else {
-	    return ERROR_NODE("Unexpected parser end in match expression");
-	}
+	
+	return ERROR_NODE("Unexpected parser end in match expression");
     }
 
     base_t parseMatch(Lexer& lexer) {
@@ -131,7 +130,15 @@ namespace slang {
 	    /**/ if (lexer.peek().is(TokenType::TOKEN_EQUAL)) {
 		lexer.next();
 
-		// parse body expression
+	        base_t body = parseExpression(lexer);
+
+		if (body->is(AST::Type::ERROR))
+		    return body;
+		if (body->is(AST::Type::EXPRESSION))
+		    return std::make_shared<AST::Match>(
+			AST::Match(
+			    mexprs,
+			    base_cast<AST::Expression>(body)));
 
 	        return ERROR_NODE("Expected match expression body");
 	    }
