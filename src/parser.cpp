@@ -4,14 +4,17 @@
 #include <iostream>
 
 #define ERROR_NODE(a) (std::make_shared<AST::Error>(AST::Error((a))))
+#define ERROR_EXPR(a) (std::make_shared<AST::ExprError>(AST::ExprError((a))))
 
 namespace slang {
-    typedef std::shared_ptr<AST::Base> base_t;
+    typedef std::shared_ptr<AST::Base>       base_t;
+    typedef std::shared_ptr<AST::Expression> expr_t;
     
     template<class T>
-    T base_cast(base_t b) {
-	return *dynamic_cast<T*>(b.get());
-    }
+    T base_cast(base_t b) { return *dynamic_cast<T*>(b.get()); }
+    
+    template<class T>
+    T expr_cast(expr_t b) { return *dynamic_cast<T*>(b.get()); }
     
     base_t parseIdentifier(Lexer& lexer) {
 	if (!lexer.peek().is(TokenType::TOKEN_IDENTIFIER)) {
@@ -68,10 +71,81 @@ namespace slang {
 	}
     }
 
-    base_t parseExpression(Lexer& lexer) {
-	return ERROR_NODE("TODO Expression");
+    /* 
+     * EXPRESSIONS */
+    base_t parseExpression(Lexer& lexer);
+    expr_t parseExprApplication(Lexer& lexer) {
+	if (!lexer.peek().is(TokenType::TOKEN_OPEN_PAREN)) {
+	    if (lexer.peek().is(TokenType::TOKEN_IDENTIFIER)) {
+		base_t id = parseIdentifier(lexer);
+
+		if (id->is(AST::Type::ERROR)) {
+		    return ERROR_EXPR(base_cast<AST::Error>(id).toString());
+		}
+		else if (id->is(AST::Type::IDENTIFIER)) {
+		    return std::make_shared<AST::Expression>(
+			AST::ExprApplication(
+			    base_cast<AST::Identifier>(id), {}));
+		}
+		else {
+		    return ERROR_EXPR("DERP A DERP TODO:::");
+		}
+	    }
+	    else {
+		return ERROR_EXPR("Application must begin with an open paren");
+	    }
+	}
+
+	lexer.next();
+
+	base_t id = parseIdentifier(lexer);
+	// NOTE:
+	// This kind of node double cast thing seems not ideal
+	if (id->is(AST::Type::ERROR))
+	    return ERROR_EXPR(base_cast<AST::Error>(id).toString());
+
+	std::vector<std::shared_ptr<AST::Expression>> args;
+	
+	while (!lexer.peek().is(TokenType::TOKEN_CLOSE_PAREN)) {
+	    base_t res = parseExpression(lexer);
+
+	    if (res->is(AST::Type::ERROR))
+		return ERROR_EXPR(base_cast<AST::Error>(res).toString());
+	    
+	    args.push_back(
+		std::make_shared<AST::Expression>(
+		    base_cast<AST::Expression>(res)));
+	}
+
+	lexer.next();
+	
+	return std::make_shared<AST::Expression>(
+	    AST::ExprApplication(
+		base_cast<AST::Identifier>(id),
+		args));
     }
     
+    base_t parseExpression(Lexer& lexer) {
+	if (false) {
+
+	}
+	// Default case is application
+	else {
+	    expr_t res = parseExprApplication(lexer);
+
+	    if (res->is(AST::ExprType::ERROR)) {
+		return ERROR_NODE(expr_cast<AST::ExprError>(res).toString());
+	    }
+	    else {
+		return res;
+	    }
+	}
+	
+	return ERROR_NODE("Unable to parse any expression type");
+    }
+
+    /*
+     * MATCHES */
     base_t parseMatchExpression(Lexer& lexer) {
 	/*
           ### TODO
@@ -199,11 +273,20 @@ namespace slang {
 		break;
 	    }
 	    else if (token.is(TokenType::TOKEN_FUNC)) {
-		result.push_back(parseFunc(lexer));
+		base_t res = parseFunc(lexer);
+
+		if (res->is(AST::Type::ERROR))
+		    return { res };
+		else
+		    result.push_back(res);
 	    }
 	    else {
-		result.push_back(ERROR_NODE("Unexpected parser end"));;
-		break;
+		base_t res = parseExpression(lexer);
+
+		if (res->is(AST::Type::ERROR))
+		    return { res };
+		else
+		    result.push_back(res);
 	    }
 	}
 	

@@ -3,38 +3,46 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <ctime>
 
 using namespace slang;
+using namespace std;
 
-int main(int argc, char ** argv) {
-    std::cout << "slang 0.0.0\n\n";
-    
-    std::string raw =
-	"func test () | = add 2 8\n";
-	//"func add (int int)\n"
-	//"| x y = x + y\n"
-	//"\n" 
-	//"\n"
-	//"func fib (int)\n"
-	//"| 0 = 1\n"
-	//"| 1 = 1\n"
-	//"| n = fib (n - 1) + fib (n - 2)\n";
-
-    std::cout << raw << std::endl;
+void execute(std::string raw) {
+    //cout << raw << endl;
     
     Parser parser;
-    std::vector<std::shared_ptr<AST::Base>> ast = parser.parse(raw);
+    vector<shared_ptr<AST::Base>> ast = parser.parse(raw);
 
-    for (std::vector<std::shared_ptr<AST::Base>>::iterator it = ast.begin(); it != ast.end(); ++it) {
-	/**/ if (it->get()->is(AST::Type::ERROR)) {
-	    AST::Error * node = dynamic_cast<AST::Error *>(it->get());
-	    std::cout << node->toString() << std::endl;
-	}
-	else if (it->get()->is(AST::Type::FUNC)) {
-	    AST::Func * node = dynamic_cast<AST::Func *>(it->get());
-	    std::cout << node->toString() << std::endl;
-	}
+    if (ast.size() == 0)
+	cout << "Something unexpected happened..." << endl;
+    else if (ast[0]->is(AST::Type::ERROR)) {
+	cout << dynamic_cast<AST::Error*>(ast[0].get())->toString() << endl;
+	return;
     }
+
+    cout << "Ok!" << endl;
+}
+
+int main(int argc, char ** argv) {
+    // Timer Begin
+    clock_t begin = clock();
+    
+    cout << "slang 0.0.0\n";
+    
+    execute("(derp derp derp derp)");
+    
+    execute("func random (int int)\n"
+	    "| x y = \n"
+	    "  (add \n"
+	    "    (sub x y) \n"
+	    "    (dub y x)) \n");
+
+    // Timer End
+    clock_t end = clock();
+    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+
+    cout << "Elapsed " << elapsed_secs << "(s)" << endl;
 }
 
 /*

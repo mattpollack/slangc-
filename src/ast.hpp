@@ -16,6 +16,8 @@ namespace slang {
 		LITERAL,
 		SIGNATURE,
 		PATTERN,
+
+	    // Expression
 		EXPRESSION,
 
 	    // NOTE: maybe create a seperate type class for match
@@ -24,7 +26,7 @@ namespace slang {
 		MATCH,
 		MATCH_EXPRESSION,
 
-	    // Expressions
+	    // Match Expressions
 		MATCH_IDENTIFIER,   // foo
 		MATCH_LITERAL,      // 1 "foo"
 		MATCH_SKIP,         // _
@@ -117,13 +119,53 @@ namespace slang {
 	/**
 	 * Expression
 	 */
+	enum class ExprType {
+	    ERROR,
+		APPLICATION,
+	};
+	
 	class Expression : public Base {
+	    ExprType expr_type;
 	public:
-	    Expression()
+	    Expression(ExprType expr_type)
 		: Base(Type::EXPRESSION)
+		, expr_type(expr_type)
 	    {}
+	    bool is(ExprType type) { return this->expr_type == type; }
+	    
+	    virtual std::string toString() override { return "Expression"; }
+	};
 
-	    virtual std::string toString() override { return "TODO Expression tostring"; }
+	/**
+	 * Error
+	 */
+	class ExprError : public Expression {
+	private:
+	    std::string msg;
+	public:
+	    ExprError(std::string msg)
+		: Expression(ExprType::ERROR)
+		, msg(msg)
+	    {}
+	    
+	    virtual std::string toString() override { return msg; }
+	};
+
+	/**
+	 * Application
+	 */
+	class ExprApplication : public Expression {
+	private:
+	    Identifier id;
+	    std::vector<std::shared_ptr<Expression>> args;
+	public:
+	    ExprApplication(Identifier id, std::vector<std::shared_ptr<Expression>> args)
+		: Expression(ExprType::APPLICATION)
+		, id(id)
+		, args(args)
+	    {}
+	    
+	    virtual std::string toString() override { return "TODO Expression Application tostring"; }
 	};
 	
 	/**
